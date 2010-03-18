@@ -1,0 +1,18 @@
+output_dir: 'compressed'
+css:
+  jga:
+    #plain: True
+    #version: 1.0
+    auto_version: True
+    files:
+      - 'stylesheets/common.css'
+      - 'stylesheets/modules.css'
+js:
+  jga:
+    #plain: True
+    #version: 1.0
+    auto_version: True
+    files:
+      - 'scripts/jga.core.js'
+      - 'scripts/jga.ui.js'
+
