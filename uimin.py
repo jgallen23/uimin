@@ -6,6 +6,9 @@ from filters.jsmin import jsmin
 from filters.cssmin import cssmin
 import time
 
+DEBUG = False
+ROOT = ""
+
 filename_formats = {
     'plain': '%(name)s.%(type)s',
     'plain_min': '%(name)s.min.%(type)s',
@@ -19,7 +22,7 @@ def concat(filenames, separator=''):
     """
     r = ''
     for filename in filenames:
-        fd = open(filename, 'rb')
+        fd = open(os.path.join(ROOT, filename), 'rb')
         r += fd.read()
         r += separator
         fd.close()
@@ -31,18 +34,25 @@ def write_file(path, filename, data):
     file.close()
 
 def get_auto_version(files):
-    return int(max([os.stat(os.path.join(f)).st_mtime for f in files]))
+    return int(max([os.stat(os.path.join(ROOT, f)).st_mtime for f in files]))
 
 def get_file(name, type, min = True):
     config = read_config()
-    try:
-        group = config[type][name]
-        if group.has_key("auto_version") and group["auto_version"]:
-            data = { 'name': name, 'version': get_auto_version(group["files"]), 'type': type }
-            filename = filename_formats["version_min"] % data if min else filename_formats['version'] % data
-            return os.path.join(config['output_dir'], filename)
-    except:
-        return None
+    #try:
+    group = config[type][name]
+    if not group.has_key("auto_version") or group["auto_version"]:
+        data = { 'name': name, 'version': get_auto_version(group["files"]), 'type': type }
+        filename = filename_formats["version_min"] % data if min else filename_formats['version'] % data
+        return os.path.join(config['output_dir'], filename)
+    #except:
+        #return None
+
+def get_files(name, type):
+    config = read_config()
+    #try:
+    group = config[type][name]
+    return [filename for filename in group['files']]
+
 
 def process_js_group(name, group, output_dir):
     """
@@ -64,7 +74,7 @@ def process_js_group(name, group, output_dir):
         filename_min = filename_formats['plain_min'] % file_data
         write_file(output_dir, filename, js)
         write_file(output_dir, filename_min, js_min)
-    if group.has_key("version") or (group.has_key('auto_version') and group['auto_version']):
+    if group.has_key("version") or (not group.has_key('auto_version') or group['auto_version']):
         file_data = { 'name': name,
                 'version': group['version'] if group.has_key("version") else get_auto_version(files),
                 'type': 'js' }
@@ -93,7 +103,7 @@ def process_css_group(name, group, output_dir):
         filename_min = filename_formats['plain_min'] % file_data
         write_file(output_dir, filename, css)
         write_file(output_dir, filename_min, css_min)
-    if group.has_key("version") or (group.has_key('auto_version') and group['auto_version']):
+    if group.has_key("version") or (not group.has_key('auto_version') or group['auto_version']):
         file_data = { 'name': name,
                 'version': group['version'] if group.has_key("version") else get_auto_version(files),
                 'type': 'css' }
@@ -103,11 +113,14 @@ def process_css_group(name, group, output_dir):
         write_file(output_dir, filename_min, css_min)
 
 def read_config():
-    file = open('uimin.yaml', 'r')
+    config_path = os.path.join(ROOT, "uimin.yaml")
+    if not os.path.exists(config_path):
+        raise
+    file = open(config_path, 'r')
     config = yaml.load(file)
     file.close()
-    if not os.path.exists(config["output_dir"]):
-        os.mkdir(config["output_dir"])
+    #if not os.path.exists(config["output_dir"]):
+        #os.mkdir(config["output_dir"])
     return config
 
 def main():
@@ -119,8 +132,6 @@ def main():
 
     [process_js_group(name, config["js"][name], config["output_dir"]) for name in config["js"]]
     [process_css_group(name, config["css"][name], config["output_dir"]) for name in config["css"]]
-    print get_file('jga', 'js')
-    print get_file('jga', 'css')
 
 if __name__ == "__main__": main()
 
