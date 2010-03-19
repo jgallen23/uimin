@@ -29,9 +29,12 @@ def concat(filenames, separator=''):
     return r
 
 def write_file(path, filename, data):
-    file = open(os.path.join(path, filename), 'w')
-    file.write(data)
-    file.close()
+    filepath = os.path.join(path, filename)
+    if not os.path.exists(filepath):
+        file = open(filepath, 'w')
+        file.write(data)
+        file.close()
+        print "File Created: %s" % filename
 
 def get_auto_version(files):
     return int(max([os.stat(os.path.join(ROOT, f)).st_mtime for f in files]))
