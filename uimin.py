@@ -30,11 +30,11 @@ def concat(filenames, separator=''):
 
 def write_file(path, filename, data):
     filepath = os.path.join(path, filename)
-    if not os.path.exists(filepath):
-        file = open(filepath, 'w')
-        file.write(data)
-        file.close()
-        print "File Created: %s" % filename
+    #if not os.path.exists(filepath):
+    file = open(filepath, 'w')
+    file.write(data)
+    file.close()
+    print "File Created: %s" % filename
 
 def get_auto_version(files):
     return int(max([os.stat(os.path.join(ROOT, f)).st_mtime for f in files]))
@@ -56,6 +56,10 @@ def get_files(name, type):
     group = config[type][name]
     return [filename for filename in group['files']]
 
+def process_inheritance(config, group):
+    if group.has_key('inherit'):
+        for file in reversed(config['js'][group['inherit']]['files']):
+            group['files'].insert(0, file)
 
 def process_js_group(name, group, output_dir):
     """
@@ -133,8 +137,10 @@ def main():
 
     config = read_config()
 
+    [process_inheritance(config, config['js'][name]) for name in config['js']]
+
     [process_js_group(name, config["js"][name], config["output_dir"]) for name in config["js"]]
-    [process_css_group(name, config["css"][name], config["output_dir"]) for name in config["css"]]
+    #[process_css_group(name, config["css"][name], config["output_dir"]) for name in config["css"]]
 
 if __name__ == "__main__": main()
 
