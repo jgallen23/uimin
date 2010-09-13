@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import os
 import yaml
 from filters.jsmin import jsmin
@@ -119,8 +120,8 @@ def process_css_group(name, group, output_dir):
         write_file(output_dir, filename, css)
         write_file(output_dir, filename_min, css_min)
 
-def read_config():
-    config_path = os.path.join(ROOT, "uimin.yaml")
+def read_config(file):
+    config_path = os.path.join(ROOT, file)
     if not os.path.exists(config_path):
         raise
     file = open(config_path, 'r')
@@ -130,17 +131,22 @@ def read_config():
         #os.mkdir(config["output_dir"])
     return config
 
-def main():
-    if not os.path.exists("uimin.yaml"):
-        print "Cannot find uimin.yaml"
+def main(args):
+    if len(args) == 0:
+        file = "uimin.yaml"
+    else:
+        file = args[0]
+
+    if not os.path.exists(file):
+        print "Cannot find ", file
         return
 
-    config = read_config()
+    config = read_config(file)
 
     [process_inheritance(config, config['js'][name]) for name in config['js']]
 
     [process_js_group(name, config["js"][name], config["output_dir"]) for name in config["js"]]
     #[process_css_group(name, config["css"][name], config["output_dir"]) for name in config["css"]]
 
-if __name__ == "__main__": main()
+if __name__ == "__main__": main(sys.argv[1:])
 
