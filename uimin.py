@@ -17,12 +17,16 @@ filename_formats = {
     'version_min': '%(name)s-%(version)s.min.%(type)s'
 }
 
+def debug(message):
+    print message
+
 def concat(filenames, separator=''):
     """
     Concatenate the files from the list of the ``filenames``, ouput separated with ``separator``.
     """
     r = ''
     for filename in filenames:
+        debug("Concatinating file: %s" % filename)
         fd = open(os.path.join(ROOT, filename), 'rb')
         r += fd.read()
         r += separator
@@ -35,7 +39,7 @@ def write_file(path, filename, data):
     file = open(filepath, 'w')
     file.write(data)
     file.close()
-    print "File Created: %s" % filename
+    debug("File Created: %s" % filename)
 
 def get_auto_version(files):
     return int(max([os.stat(os.path.join(ROOT, f)).st_mtime for f in files]))
@@ -71,18 +75,19 @@ def process_js_group(name, group, output_dir):
     jga-1.0.js
     jga-1.0.min.js
     """
+    debug("\nGenerating: %s" % name)
     files = group['files']
 
     js = concat(files)
     js_min = jsmin(js)
 
-    if group.has_key("plain") and group["plain"]:
+    if not group.has_key("plain") or (group.has_key("plain") and group["plain"]):
         file_data = { 'name': name, 'type': 'js' }
         filename = filename_formats['plain']  % file_data
         filename_min = filename_formats['plain_min'] % file_data
         write_file(output_dir, filename, js)
         write_file(output_dir, filename_min, js_min)
-    if group.has_key("version") or (not group.has_key('auto_version') or group['auto_version']):
+    if group.has_key("version") or (group.has_key('auto_version') and group['auto_version']):
         file_data = { 'name': name,
                 'version': group['version'] if group.has_key("version") else get_auto_version(files),
                 'type': 'js' }
