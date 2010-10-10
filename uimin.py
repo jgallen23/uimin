@@ -8,7 +8,7 @@ from filters.cssmin import cssmin
 import time
 
 DEBUG = False
-ROOT = ""
+ROOT = os.getcwd()
 
 filename_formats = {
     'plain': '%(name)s.%(type)s',
@@ -140,13 +140,17 @@ def main(args):
     if len(args) == 0:
         file = "uimin.yaml"
     else:
-        file = args[0]
+        file = os.path.join(os.getcwd(), args[0])
 
     if not os.path.exists(file):
         print "Cannot find ", file
         return
 
+
     config = read_config(file)
+
+    if not os.path.exists(config['output_dir']):
+        os.mkdir(config['output_dir'])
 
     [process_inheritance(config, config['js'][name]) for name in config['js']]
 
