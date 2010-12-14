@@ -136,20 +136,16 @@ def read_config(file):
         #os.mkdir(config["output_dir"])
     return config
 
-def get_output(file, type, name, path = "", debug = False):
+def get_file_list(file, type, name, debug = False):
     config = read_config(file)
     process_inheritance(config, config['js'][name])
     group = config[type][name]
-    tmp = "<script src='%s/%s'></script>"
     if not debug:
         file_data = { 'name': name, 'type': 'js' }
         filename_min = filename_formats['plain_min']  % file_data
-        return tmp % (path, filename_min)
+        return [filename_min]
     else:
-        html = []
-        for file in group['files']:
-            html.append(tmp % (path, file))
-        return ''.join(html)
+        return group['files']
 
 
 
