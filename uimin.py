@@ -110,13 +110,13 @@ def process_css_group(name, group, output_dir):
     css = concat(files)
     css_min = cssmin(css)
 
-    if group.has_key("plain") and group["plain"]:
+    if not group.has_key("plain") or (group.has_key("plain") and group["plain"]):
         file_data = { 'name': name, 'type': 'css' }
         filename = filename_formats['plain']  % file_data
         filename_min = filename_formats['plain_min'] % file_data
         write_file(output_dir, filename, css)
         write_file(output_dir, filename_min, css_min)
-    if group.has_key("version") or (not group.has_key('auto_version') or group['auto_version']):
+    if group.has_key("version") or (group.has_key('auto_version') and group['auto_version']):
         file_data = { 'name': name,
                 'version': group['version'] if group.has_key("version") else get_auto_version(files),
                 'type': 'css' }
@@ -136,13 +136,13 @@ def read_config(file):
         #os.mkdir(config["output_dir"])
     return config
 
-def get_file_list(file, type, name, debug = False):
+def get_file_list(file, type, name, debug = False, format = "plain_min"):
     config = read_config(file)
     process_inheritance(config, config['js'][name])
     group = config[type][name]
     if not debug:
-        file_data = { 'name': name, 'type': 'js' }
-        filename_min = filename_formats['plain_min']  % file_data
+        file_data = { 'name': name, 'type': type }
+        filename_min = filename_formats[format]  % file_data
         return [filename_min]
     else:
         return group['files']
@@ -165,10 +165,12 @@ def main(args):
     if not os.path.exists(config['output_dir']):
         os.mkdir(config['output_dir'])
 
-    [process_inheritance(config, config['js'][name]) for name in config['js']]
-
-    [process_js_group(name, config["js"][name], config["output_dir"]) for name in config["js"]]
-    #[process_css_group(name, config["css"][name], config["output_dir"]) for name in config["css"]]
+    if config.has_key('js'):
+        [process_inheritance(config, config['js'][name]) for name in config['js']]
+        [process_js_group(name, config["js"][name], config["output_dir"]) for name in config["js"]]
+    if config.has_key('css'):
+        [process_inheritance(config, config['css'][name]) for name in config['css']]
+        [process_css_group(name, config["css"][name], config["output_dir"]) for name in config["css"]]
 
 if __name__ == "__main__": main(sys.argv[1:])
 
