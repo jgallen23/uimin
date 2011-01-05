@@ -63,8 +63,10 @@ def get_files(name, type):
 
 def process_inheritance(config, group):
     if group.has_key('inherit'):
+        process_inheritance(config, config['js'][group['inherit']])
         for file in reversed(config['js'][group['inherit']]['files']):
             group['files'].insert(0, file)
+        del group['inherit']
 
 def process_js_group(name, group, output_dir):
     """
