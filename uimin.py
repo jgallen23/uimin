@@ -5,6 +5,7 @@ import os
 import yaml
 from filters.jsmin import jsmin
 from filters.cssmin import cssmin
+from optparse import OptionParser
 import time
 
 DEBUG = False
@@ -152,10 +153,14 @@ def get_file_list(file, type, name, debug = False, format = "plain_min"):
 
 
 def main(args):
-    if len(args) == 0:
-        file = "uimin.yaml"
-    else:
-        file = os.path.join(os.getcwd(), args[0])
+    parser = OptionParser()
+    parser.add_option("-f", "--file", dest="filename", help="Config file", default = "uimin.yaml")
+    parser.add_option("-p", "--profile", dest="profile", help="profile to run")
+    parser.add_option("-t", "--type", dest="type", help="file type (js/css)", default = "js")
+
+    (options, args) = parser.parse_args()
+
+    file = os.path.join(os.getcwd(), options.filename)
 
     if not os.path.exists(file):
         print "Cannot find ", file
@@ -167,12 +172,23 @@ def main(args):
     if not os.path.exists(config['output_dir']):
         os.mkdir(config['output_dir'])
 
-    if config.has_key('js'):
-        [process_inheritance(config, config['js'][name]) for name in config['js']]
-        [process_js_group(name, config["js"][name], config["output_dir"]) for name in config["js"]]
-    if config.has_key('css'):
-        [process_inheritance(config, config['css'][name]) for name in config['css']]
-        [process_css_group(name, config["css"][name], config["output_dir"]) for name in config["css"]]
+    if not options.profile:
+    #process all
+        if config.has_key('js'):
+            [process_inheritance(config, config['js'][name]) for name in config['js']]
+            [process_js_group(name, config["js"][name], config["output_dir"]) for name in config["js"]]
+        if config.has_key('css'):
+            [process_inheritance(config, config['css'][name]) for name in config['css']]
+            [process_css_group(name, config["css"][name], config["output_dir"]) for name in config["css"]]
+    else:
+    #process selected profile
+        name = options.profile
+        if options.type == "js":
+            [process_inheritance(config, config['js'][name]) for name in config['js']]
+            process_js_group(name, config["js"][name], config["output_dir"])
+        elif options.type == "css":
+            [process_inheritance(config, config['css'][name]) for name in config['css']]
+            process_css_group(name, config["css"][name], config["output_dir"])
 
 if __name__ == "__main__": main(sys.argv[1:])
 
