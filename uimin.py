@@ -182,13 +182,13 @@ def main(args):
             [process_css_group(name, config["css"][name], config["output_dir"]) for name in config["css"]]
     else:
     #process selected profile
-        name = options.profile
+        profile = options.profile
         if options.type == "js":
             [process_inheritance(config, config['js'][name]) for name in config['js']]
-            process_js_group(name, config["js"][name], config["output_dir"])
+            process_js_group(profile, config["js"][profile], config["output_dir"])
         elif options.type == "css":
             [process_inheritance(config, config['css'][name]) for name in config['css']]
-            process_css_group(name, config["css"][name], config["output_dir"])
+            process_css_group(profile, config["css"][profile], config["output_dir"])
 
 if __name__ == "__main__": main(sys.argv[1:])
 
