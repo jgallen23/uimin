@@ -139,17 +139,24 @@ def read_config(file):
         #os.mkdir(config["output_dir"])
     return config
 
-def get_file_list(file, type, name, debug = False, format = "plain_min"):
+def get_file_list(file, type, names, debug = False, format = "plain_min"):
+    name_list = names.split(",")
     config = read_config(file)
-    process_inheritance(config, config['js'][name])
-    group = config[type][name]
+    [process_inheritance(config, config['js'][name]) for name in config['js']]
     if not debug:
-        file_data = { 'name': name, 'type': type }
-        filename_min = filename_formats[format]  % file_data
-        return [filename_min]
+        files = []
+        for name in name_list:
+            file_data = { 'name': name, 'type': type }
+            filename_min = filename_formats[format]  % file_data
+            files.append(filename_min)
+        return files
     else:
-        return group['files']
-
+        files = []
+        for name in name_list:
+            group = config[type][name]
+            if group['files']:
+                files.extend(group['files'])
+        return files
 
 
 def main(args):
